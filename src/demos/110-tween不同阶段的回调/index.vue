@@ -119,7 +119,7 @@ onUnmounted(() => {
   mesh?.material?.dispose?.()
   renderer?.dispose?.()
   if (renderer?.domElement?.parentNode) renderer.domElement.parentNode.removeChild(renderer.domElement)
-}
+})
 
 function reset() {
   counters.value = { onStart: 0, onUpdate: 0, onRepeat: 0, onComplete: 0, onStop: 0 }

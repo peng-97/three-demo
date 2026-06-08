@@ -1,16 +1,18 @@
-// OBJLoader 基本用法
-const loader = new OBJLoader()
-loader.load('model.obj', (object) => {
-  scene.add(object)
+// OBJLoader + MTLLoader（支持贴图）
+const manager = new THREE.LoadingManager()
+const mtlLoader = new MTLLoader(manager)
+const objLoader = new OBJLoader(manager)
+
+mtlLoader.load('model.mtl', (materials) => {
+  materials.preload()
+  objLoader.setMaterials(materials)
+  objLoader.load('model.obj', (object) => {
+    scene.add(object)
+  })
 })
 
-// 程序生成复杂几何体
-const geometry = new THREE.IcosahedronGeometry(4, 3)
-const material = new THREE.MeshStandardMaterial({
-  color: 0x4ecdc4,
-  metalness: 0.3,
-  roughness: 0.6,
-  flatShading: true
+// 本地文件加载的关键：把 mtl 引用的相对贴图路径映射到 blob url
+manager.setURLModifier((url) => {
+  const filename = url.split('/').pop()
+  return fileMap.get(filename) || url
 })
-const mesh = new THREE.Mesh(geometry, material)
-scene.add(mesh)

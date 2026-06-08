@@ -3,11 +3,11 @@
     <div ref="container" class="demo-container"></div>
     <div class="control-panel">
       <input ref="fileInput" type="file" class="control-file" accept=".glb,.gltf" @change="onPickFile">
-      <button @click="pickFile" class="control-btn">选择GLB/GLTF</button>
+      <button @click="pickFile" class="control-btn" :disabled="loading">选择GLB/GLTF</button>
       <span class="panel-label">或URL:</span>
-      <input v-model="url" class="control-text" placeholder="粘贴 glb/gltf url">
-      <button @click="loadFromUrl" class="control-btn" :disabled="loading || !url">加载URL</button>
-      <button @click="clearModel" class="control-btn" :disabled="loading || !modelGroup">清空</button>
+      <input v-model="url" class="control-text" placeholder="粘贴 glb/gltf url" :disabled="loading">
+      <button @click="loadFromUrl" class="control-btn" :disabled="loading || !url">加载</button>
+      <button @click="clearModel" class="control-btn" :disabled="loading || !modelRoot">清空</button>
       <span class="panel-label">状态:</span>
       <span class="panel-value">{{ status }}</span>
     </div>
@@ -27,10 +27,12 @@ const status = ref('等待选择文件或输入URL')
 const loading = ref(false)
 
 let scene, camera, renderer, animationId, controls
-let clock
 let loader
-let modelGroup = null
-let ground, grid
+let clock
+let modelRoot = null
+let ground = null
+let grid = null
+let lastObjectUrl = null
 
 function onResize() {
   if (!container.value || !renderer || !camera) return
@@ -43,19 +45,18 @@ function onResize() {
 function disposeObject(obj) {
   if (!obj) return
   obj.traverse?.((child) => {
-    if (child.isMesh) {
-      child.geometry?.dispose?.()
-      if (Array.isArray(child.material)) child.material.forEach((m) => m.dispose?.())
-      else child.material?.dispose?.()
-    }
+    if (!child.isMesh) return
+    child.geometry?.dispose?.()
+    if (Array.isArray(child.material)) child.material.forEach((m) => m.dispose?.())
+    else child.material?.dispose?.()
   })
 }
 
 function clearModel() {
-  if (!modelGroup) return
-  scene.remove(modelGroup)
-  disposeObject(modelGroup)
-  modelGroup = null
+  if (!modelRoot) return
+  scene.remove(modelRoot)
+  disposeObject(modelRoot)
+  modelRoot = null
   status.value = '已清空'
 }
 
@@ -87,13 +88,13 @@ function loadGltf(pathOrUrl) {
     pathOrUrl,
     (gltf) => {
       loading.value = false
-      modelGroup = gltf.scene || gltf.scenes?.[0]
-      if (!modelGroup) {
+      modelRoot = gltf.scene || gltf.scenes?.[0]
+      if (!modelRoot) {
         status.value = '加载成功，但未找到 scene'
         return
       }
-      scene.add(modelGroup)
-      fitCameraToObject(modelGroup)
+      scene.add(modelRoot)
+      fitCameraToObject(modelRoot)
       status.value = '加载成功'
     },
     (e) => {
@@ -102,7 +103,7 @@ function loadGltf(pathOrUrl) {
         status.value = `加载中... ${p}%`
       }
     },
-    (err) => {
+    () => {
       loading.value = false
       status.value = '加载失败'
     }
@@ -116,10 +117,11 @@ function pickFile() {
 function onPickFile(e) {
   const file = e.target.files?.[0]
   if (!file) return
-  const objectUrl = URL.createObjectURL(file)
+
+  if (lastObjectUrl) URL.revokeObjectURL(lastObjectUrl)
+  lastObjectUrl = URL.createObjectURL(file)
   status.value = `加载文件: ${file.name}`
-  loadGltf(objectUrl)
-  setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000)
+  loadGltf(lastObjectUrl)
   e.target.value = ''
 }
 
@@ -127,24 +129,6 @@ function loadFromUrl() {
   if (!url.value) return
   loadGltf(url.value.trim())
 }
-
-onMounted(() => {
-  init()
-  animate()
-})
-
-onUnmounted(() => {
-  cancelAnimationFrame(animationId)
-  window.removeEventListener('resize', onResize)
-  controls?.dispose?.()
-  clearModel()
-  ground?.geometry?.dispose?.()
-  ground?.material?.dispose?.()
-  grid?.geometry?.dispose?.()
-  grid?.material?.dispose?.()
-  renderer?.dispose?.()
-  if (renderer?.domElement?.parentNode) renderer.domElement.parentNode.removeChild(renderer.domElement)
-})
 
 function init() {
   scene = new THREE.Scene()
@@ -156,6 +140,7 @@ function init() {
 
   renderer = new THREE.WebGLRenderer({ antialias: true })
   renderer.setSize(container.value.clientWidth, container.value.clientHeight)
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
   container.value.appendChild(renderer.domElement)
 
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.75)
@@ -180,28 +165,45 @@ function init() {
   loader = new GLTFLoader()
   clock = new THREE.Clock()
   window.addEventListener('resize', onResize)
+}
 
 function animate() {
   animationId = requestAnimationFrame(animate)
-  if (animating) {
   clock.getDelta()
+  controls.update()
   renderer.render(scene, camera)
 }
+
+onMounted(() => {
+  init()
+  animate()
+})
+
+onUnmounted(() => {
+  cancelAnimationFrame(animationId)
+  window.removeEventListener('resize', onResize)
+  controls?.dispose?.()
+  clearModel()
+  ground?.geometry?.dispose?.()
+  ground?.material?.dispose?.()
+  grid?.geometry?.dispose?.()
+  grid?.material?.dispose?.()
+  renderer?.dispose?.()
+  if (renderer?.domElement?.parentNode) renderer.domElement.parentNode.removeChild(renderer.domElement)
+  if (lastObjectUrl) URL.revokeObjectURL(lastObjectUrl)
+})
 </script>
 
 <style scoped>
-.demo-wrapper {
 .control-file { display: none; }
 .control-text { width: 260px; padding: 8px 10px; border-radius: 6px; border: none; }
+.demo-wrapper {
   width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
-  flex-direction: column;
 }
-.demo-container {
-  flex: 1;
-}
+.demo-container { flex: 1; }
 .control-panel {
   display: flex;
   justify-content: center;
@@ -228,8 +230,5 @@ function animate() {
 .control-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 .panel-label { color: white; font-weight: 600; font-size: 0.9rem; }
 .panel-value { color: white; font-weight: 700; min-width: 120px; text-align: left; }
-.control-range { width: 120px; cursor: pointer; }
-.control-select { padding: 8px 12px; font-size: 0.9rem; border-radius: 6px; border: none; }
-.control-check { display: inline-flex; align-items: center; gap: 6px; color: white; font-weight: 600; font-size: 0.9rem; user-select: none; }
-.control-check input { cursor: pointer; }
 </style>
+

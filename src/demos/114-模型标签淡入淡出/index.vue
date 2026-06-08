@@ -113,7 +113,7 @@ onUnmounted(() => {
   renderer?.dispose?.()
   if (renderer?.domElement?.parentNode) renderer.domElement.parentNode.removeChild(renderer.domElement)
   if (labelRenderer?.domElement?.parentNode) labelRenderer.domElement.parentNode.removeChild(labelRenderer.domElement)
-}
+})
 
 function animate() {
   animationId = requestAnimationFrame(animate)

@@ -32,16 +32,17 @@ const loop = ref(true)
 const nearest = ref(false)
 const playing = ref(true)
 const frame = ref(0)
-const totalFrames = 32
-let scene, camera, renderer, animationId, controls
-let mesh, mixer, action, clock
-let cardMesh, backgroundMesh
-let clock
-let atlasTexture
-let accum = 0
 
+const totalFrames = 32
 const atlasCols = 8
 const atlasRows = 4
+
+let scene, camera, renderer, animationId, controls
+let clock
+let atlasTexture
+let cardMesh
+let backgroundMesh
+let accum = 0
 
 function onResize() {
   if (!container.value || !renderer || !camera) return
@@ -97,7 +98,6 @@ function createAtlasTexture() {
   texture.wrapT = THREE.RepeatWrapping
   texture.repeat.set(1 / atlasCols, 1 / atlasRows)
   texture.offset.set(0, 1 - 1 / atlasRows)
-  texture.generateMipmaps = true
   return texture
 }
 
@@ -113,53 +113,54 @@ function applyFrame() {
 
 function applyFiltering() {
   if (!atlasTexture) return
-  const minFilter = nearest.value ? THREE.NearestMipmapNearestFilter : THREE.LinearMipmapLinearFilter
-  const magFilter = nearest.value ? THREE.NearestFilter : THREE.LinearFilter
-  atlasTexture.minFilter = minFilter
-  atlasTexture.magFilter = magFilter
+  if (nearest.value) {
+    atlasTexture.generateMipmaps = false
+    atlasTexture.minFilter = THREE.NearestFilter
+    atlasTexture.magFilter = THREE.NearestFilter
+  } else {
+    atlasTexture.generateMipmaps = true
+    atlasTexture.minFilter = THREE.LinearMipmapLinearFilter
+    atlasTexture.magFilter = THREE.LinearFilter
+  }
   atlasTexture.needsUpdate = true
 }
-onMounted(() => {
-  init()
-  animate()
-})
 
-onUnmounted(() => {
-  cancelAnimationFrame(animationId)
-  renderer.dispose()
-  window.removeEventListener('resize', onResize)
-  controls?.dispose?.()
-  cardMesh?.geometry?.dispose?.()
-  cardMesh?.material?.dispose?.()
-  backgroundMesh?.geometry?.dispose?.()
-  backgroundMesh?.material?.dispose?.()
-  atlasTexture?.dispose?.()
-  renderer?.dispose?.()
-  if (renderer?.domElement?.parentNode) renderer.domElement.parentNode.removeChild(renderer.domElement)
+function togglePlay() {
+  playing.value = !playing.value
+}
+
+function reset() {
+  frame.value = 0
+  accum = 0
+  applyFrame()
+}
 
 function init() {
   scene = new THREE.Scene()
-  scene.background = new THREE.Color(0x1a1a2e)
+  scene.background = new THREE.Color(0x05051a)
 
-  camera = new THREE.PerspectiveCamera(75, container.value.clientWidth / container.value.clientHeight, 0.1, 1000)
-  camera = new THREE.PerspectiveCamera(60, container.value.clientWidth / container.value.clientHeight, 0.1, 100)
+  camera = new THREE.PerspectiveCamera(60, container.value.clientWidth / container.value.clientHeight, 0.1, 120)
   camera.position.set(0, 3.5, 9)
   camera.lookAt(0, 2, 0)
+
   renderer = new THREE.WebGLRenderer({ antialias: true })
   renderer.setSize(container.value.clientWidth, container.value.clientHeight)
   container.value.appendChild(renderer.domElement)
 
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.6)
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.8)
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.85)
   scene.add(ambientLight)
-  const gridHelper = new THREE.GridHelper(10, 10, 0x444444, 0x222222)
-  const gridHelper = new THREE.GridHelper(20, 20, 0x444444, 0x222222)
+
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.65)
+  directionalLight.position.set(10, 18, 10)
+  scene.add(directionalLight)
+
+  const gridHelper = new THREE.GridHelper(20, 20, 0x222244, 0x111122)
+  scene.add(gridHelper)
 
   controls = new OrbitControls(camera, renderer.domElement)
   controls.enableDamping = true
-
   controls.target.set(0, 2, 0)
-  const geometry = new THREE.BoxGeometry(1, 1, 1)
+
   const backGeometry = new THREE.TorusKnotGeometry(1.2, 0.45, 160, 24)
   const backMaterial = new THREE.MeshStandardMaterial({ color: 0x4ecdc4, roughness: 0.35, metalness: 0.55 })
   backgroundMesh = new THREE.Mesh(backGeometry, backMaterial)
@@ -181,31 +182,23 @@ function init() {
   scene.add(cardMesh)
 
   applyFrame()
-}
+  clock = new THREE.Clock()
   window.addEventListener('resize', onResize)
-
-function playAnimation() {
-function togglePlay() {
-  playing.value = !playing.value
 }
-
-function reset() {
-  frame.value = 0
-  accum = 0
-  applyFrame()
 
 function animate() {
   animationId = requestAnimationFrame(animate)
   const delta = clock.getDelta()
-  if (mixer) mixer.update(delta)
 
-  backgroundMesh.rotation.x += delta * 0.15
-  backgroundMesh.rotation.y += delta * 0.25
+  if (backgroundMesh) {
+    backgroundMesh.rotation.x += delta * 0.15
+    backgroundMesh.rotation.y += delta * 0.25
+  }
 
   if (playing.value) {
     const dt = Math.min(delta, 0.2)
     accum += dt
-    const frameTime = 1 / fps.value
+    const frameTime = 1 / Math.max(1, fps.value)
     if (accum >= frameTime) {
       const step = Math.floor(accum / frameTime)
       accum -= step * frameTime
@@ -220,15 +213,33 @@ function animate() {
     }
   }
 
+  controls.update()
   renderer.render(scene, camera)
 }
-</script>
+
+onMounted(() => {
+  init()
+  animate()
+})
+
+onUnmounted(() => {
+  cancelAnimationFrame(animationId)
+  window.removeEventListener('resize', onResize)
+  controls?.dispose?.()
+  cardMesh?.geometry?.dispose?.()
+  cardMesh?.material?.dispose?.()
+  backgroundMesh?.geometry?.dispose?.()
+  backgroundMesh?.material?.dispose?.()
+  atlasTexture?.dispose?.()
+  renderer?.dispose?.()
+  if (renderer?.domElement?.parentNode) renderer.domElement.parentNode.removeChild(renderer.domElement)
+})
 
 watch(nearest, applyFiltering)
+</script>
 
 <style scoped>
 .demo-wrapper {
-  width: 100%;
   width: 100%;
   height: 100%;
   display: flex;
