@@ -1,8 +1,24 @@
 {
   "name": "three-demo",
+  "description": "基于 Vue 3 + Vite 的 Three.js 学习与验证 Demo 集合：支持搜索/分页，进入单个 Demo 后可查看「效果实现 / 核心源码 / 功能解释」，适合从基础到进阶逐步练习与复现常见三维可视化能力。",
+  "keywords": [
+    "threejs",
+    "three.js",
+    "vue",
+    "vite",
+    "webgl",
+    "graphics",
+    "demos",
+    "learning"
+  ],
+  "homepage": "http://124.223.98.38:8888/three-demo/",
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
