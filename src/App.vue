@@ -241,14 +241,14 @@ body {
 .header {
   text-align: center;
   color: #333;
-  padding: 15px 20px;
+  padding: 10px 16px;
   flex-shrink: 0;
   border-bottom: 1px solid #eee;
 }
 
 .header h1 {
-  font-size: 2rem;
-  margin-bottom: 5px;
+  font-size: 1.6rem;
+  margin-bottom: 0;
 }
 
 .header p {
@@ -481,7 +481,7 @@ body {
 
 .demo-view {
   background: white;
-  padding: 25px;
+  padding: 14px 16px;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -491,18 +491,18 @@ body {
 .demo-view-header-bar {
   display: flex;
   align-items: center;
-  gap: 20px;
-  margin-bottom: 25px;
-  padding-bottom: 20px;
-  border-bottom: 2px solid #f0f0f0;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .back-btn {
   background: #f0f0f0;
   border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-size: 1rem;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.85rem;
   cursor: pointer;
   transition: all 0.3s;
   flex-shrink: 0;
@@ -517,43 +517,44 @@ body {
 }
 
 .demo-view-title {
-  font-size: 2rem;
+  font-size: 1.4rem;
   color: #333;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .demo-view-tags {
   display: flex;
   gap: 8px;
-  margin-top: 5px;
+  margin-top: 2px;
+  flex-wrap: wrap;
 }
 
 .demo-view-tag {
   background: linear-gradient(135deg, #667eea, #764ba2);
   color: white;
-  padding: 6px 15px;
-  border-radius: 15px;
-  font-size: 0.9rem;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
   white-space: nowrap;
 }
 
 .tabs {
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-  border-bottom: 2px solid #f0f0f0;
+  gap: 8px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .tab-btn {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 24px;
+  padding: 8px 14px;
   background: #f8f9fa;
   border: none;
   border-bottom: 2px solid transparent;
-  border-radius: 8px 8px 0 0;
-  font-size: 1rem;
+  border-radius: 6px 6px 0 0;
+  font-size: 0.9rem;
   cursor: pointer;
   transition: all 0.3s;
   color: #666;
@@ -571,7 +572,7 @@ body {
 }
 
 .tab-icon {
-  font-size: 1.2rem;
+  font-size: 1rem;
 }
 
 .tab-content {
@@ -591,7 +592,7 @@ body {
 
 .explanation-panel {
   background: #f8f9fa;
-  padding: 30px;
+  padding: 16px;
 }
 
 .explanation-text {
@@ -611,20 +612,20 @@ body {
 .code-header {
   display: flex;
   align-items: center;
-  padding: 14px 20px;
+  padding: 10px 14px;
   background: #21252b;
   border-bottom: 1px solid #3a3f4b;
 }
 
 .code-dots {
   display: flex;
-  gap: 8px;
-  margin-right: 20px;
+  gap: 6px;
+  margin-right: 14px;
 }
 
 .dot {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
 }
 
@@ -661,7 +662,7 @@ body {
 
 .code-pre {
   margin: 0;
-  padding: 24px 30px;
+  padding: 16px 18px;
   flex: 1;
   overflow: auto;
   text-align: left;

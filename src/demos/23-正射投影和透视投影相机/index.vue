@@ -154,8 +154,8 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 15px;
-  padding: 15px 20px;
+  gap: 10px;
+  padding: 8px 12px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   flex-wrap: wrap;
 }
@@ -163,13 +163,13 @@ onUnmounted(() => {
 .panel-label {
   color: white;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
 }
 
 .panel-value {
   color: white;
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 0.85rem;
   min-width: 50px;
 }
 
@@ -179,8 +179,8 @@ onUnmounted(() => {
 }
 
 .control-btn {
-  padding: 10px 20px;
-  font-size: 0.9rem;
+  padding: 6px 12px;
+  font-size: 0.85rem;
   font-weight: 600;
   color: #333;
   background: white;
